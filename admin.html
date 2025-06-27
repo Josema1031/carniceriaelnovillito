@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración</title>
+    <link rel="shortcut icon" href="imag/descarga.png" type="image/x-icon">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    input[type="text"], input[type="number"], input[type="password"] {
+      width: 90%;
+      padding: 5px;
+    }
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    #acciones {
+      text-align: center;
+      margin-top: 20px;
+    }
+    #login-container {
+      max-width: 300px;
+      margin: 100px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    #admin-panel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login-container">
+    <div id="loader" style="text-align: center; display: none; margin-top: 30px;">
+  <p>Cargando productos...</p>
+
+</div>
+    <h2>Acceso al Panel de Control de Productos</h2>
+    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+    <input type="text" id="usuario" placeholder="Usuario" style="padding-right: 30px;"><br><br><br><br>
+  </div>
+  
+  
+    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+  <input type="password" id="clave" placeholder="Contraseña" style="padding-right: 30px;">
+  <span id="toggle-clave" style="position: absolute; right: 15px; cursor: pointer;">👁️</span>
+</div>
+<br><br>
+
+
+    <button onclick="verificarLogin()">Ingresar</button>
+    <p id="mensaje-error" style="color:red;"></p>
+  </div>
+
+  <!-- Panel oculto hasta que se loguee -->
+  <div id="admin-panel">
+    <div style="text-align: center; margin-top: 20px;">
+  <input type="text" id="buscador-admin" placeholder="Buscar productos..." style="width: 50%; padding: 10px; font-size: 16px;">
+</div>
+
+<h1>Panel de Administración de Productos</h1>
+
+    <div id="acciones">
+  <button onclick="agregarProducto()">➕ Agregar Producto</button>
+  <button onclick="guardarProductos()">💾 Guardar Cambios</button>
+
+  <button onclick="cerrarSesion()" style="background-color: darkred; color: white;">🔒 Cerrar sesión</button>
+  </div>
+
+    <table id="tabla-productos">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Precio</th>
+          <th>Categoria</th>
+          <th>tipo de venta</th>
+          <th>Imagen (URL)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Firebase SDKs -->
+<script type="module">
+  const tiendaId = "CARNICERIAELNOVILLITO"; // ⚠️ Cambiá esto para cada tienda
+ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+  
+
+
+  // Tu configuración de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyA36uwBk0FBDc6rI16BAsqUNe_AXLpv62Q",
+    authDomain: "carniceriadonjose-48638.firebaseapp.com",
+    projectId: "carniceriadonjose-48638",
+    storageBucket: "carniceriadonjose-48638.appspot.com",
+    messagingSenderId: "322531750471",
+    appId: "1:322531750471:web:78e290c9c81eecc7be3762"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app); // ← ¡Ponelo acá!
+  const db = getFirestore(app);
+  const productosRef = collection(db, "tiendas", tiendaId, "productos");
+
+
+  let productos = [];
+  let productosOriginales = [];
+
+
+  // AUTENTICACIÓN LOCAL SIMPLE
+  const USUARIO_CORRECTO = "Admin";
+  const CLAVE_CORRECTA = "Gualeguay";
+  
+
+  window.verificarLogin = async function () {
+    const usuario = document.getElementById("usuario").value;
+    const clave = document.getElementById("clave").value;
+    const error = document.getElementById("mensaje-error");
+
+    if (usuario === USUARIO_CORRECTO && clave === CLAVE_CORRECTA) {
+      sessionStorage.setItem("accesoPermitido", "true");
+      sessionStorage.setItem("horaLogin", Date.now());
+
+      document.getElementById("login-container").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+      await mostrarProductos();
+    } else {
+      error.textContent = "Usuario o contraseña incorrectos";
+    }
+  };
+async function mostrarProductos() {
+  document.getElementById("loader").style.display = "block"; // mostrar loader
+
+  // Si hay productos cacheados en sessionStorage, mostralos primero
+  const cache = sessionStorage.getItem("productosAdmin");
+  if (cache) {
+    productos = JSON.parse(cache);
+    renderTabla();
+  }
+
+  try {
+    const snapshot = await getDocs(productosRef);
+    productos = snapshot.docs.map(docSnap => ({
+  id: docSnap.id,
+  ...docSnap.data()
+}));
+productosOriginales = JSON.parse(JSON.stringify(productos)); // Copia profunda
+
+
+    sessionStorage.setItem("productosAdmin", JSON.stringify(productos));
+    renderTabla();
+  } catch (error) {
+    alert("❌ Error al cargar los productos desde Firebase");
+    console.error(error);
+  } finally {
+    document.getElementById("loader").style.display = "none"; // ocultar loader
+  }
+}
+
+
+
+  window.editar = function (index, campo, valor) {
+    productos[index][campo] = campo === 'precio' ? parseFloat(valor) : valor;
+  };
+
+ window.agregarProducto = function () {
+  productos.unshift({
+    nombre: "",
+    precio: 0,
+    imagen: "",
+    categoria: "carne",
+    tipoVenta: "kg",
+    id: null
+  });
+  renderTabla();
+};
+
+
+
+
+
+function renderTabla(lista = productos) {
+  const tbody = document.querySelector("#tabla-productos tbody");
+  tbody.innerHTML = "";
+
+  lista.forEach((prod, index) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td><input type="text" value="${prod.nombre}" onchange="editar(${index}, 'nombre', this.value)"></td>
+      <td><input type="number" value="${prod.precio}" onchange="editar(${index}, 'precio', this.value)"></td>
+      <td> <input type="file" onchange="subirImagen(this, ${index})"><br>
+      <input type="text" value="${prod.imagen}" placeholder="o pegá URL" onchange="editar(${index}, 'imagen', this.value)" style="width: 100%; margin-top: 5px;"><br>
+    <small>${prod.imagen ? `<img src="${prod.imagen}" width="50"> ✅` : '❌ Sin imagen'}</small>
+      <td><button onclick="eliminarProducto('${prod.id}', ${index})">🗑️ Eliminar</button></td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
+
+
+
+
+  window.eliminarProducto = async function (id) {
+    if (confirm("¿Estás seguro de eliminar este producto?")) {
+      await deleteDoc(doc(db, "productos", id));
+      await mostrarProductos();
+    }
+  };
+
+ window.guardarProductos = async function () {
+  sessionStorage.removeItem("productosAdmin");
+
+  try {
+    const operaciones = [];
+
+    for (let i = 0; i < productos.length; i++) {
+      const prod = productos[i]; // usamos un nombre más claro y seguro
+      const original = productosOriginales.find(p => p.id === prod.id);
+
+      const data = {
+        nombre: prod.nombre,
+        precio: prod.precio,
+        imagen: prod.imagen,
+        categoria: prod.categoria,
+        tipoVenta: prod.tipoVenta
+      };
+
+      if (!prod.id) {
+        operaciones.push(addDoc(productosRef, data));
+      } else if (
+        !original ||
+        original.nombre !== prod.nombre ||
+        original.precio !== prod.precio ||
+        original.imagen !== prod.imagen ||
+        original.categoria !== prod.categoria ||
+        original.tipoVenta !== prod.tipoVenta
+      ) {
+        const ref = doc(db, "productos", prod.id);
+        operaciones.push(updateDoc(ref, data));
+      }
+    }
+
+    await Promise.all(operaciones);
+    alert("✅ Productos guardados correctamente.");
+    await mostrarProductos();
+  } catch (error) {
+    alert("❌ Error al guardar productos.");
+    console.error(error);
+  }
+};
+
+
+
+// OPCIONAL: Notificar a otros dispositivos
+localStorage.setItem("productosActualizados", Date.now());
+
+
+  window.onload = async function () {
+    const acceso = sessionStorage.getItem("accesoPermitido");
+    const horaLogin = sessionStorage.getItem("horaLogin");
+
+    if (acceso === "true" && horaLogin) {
+      const ahora = Date.now();
+      const diferenciaMinutos = (ahora - parseInt(horaLogin)) / 60000;
+
+      if (diferenciaMinutos <= 15) {
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        await mostrarProductos();
+      } else {
+        sessionStorage.removeItem("accesoPermitido");
+        sessionStorage.removeItem("horaLogin");
+        alert("Tu sesión ha caducado. Iniciá sesión nuevamente.");
+      }
+    }
+  };
+
+  // Buscar productos en tiempo real en admin
+document.getElementById("buscador-admin").addEventListener("input", e => {
+  const texto = e.target.value.toLowerCase();
+  const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(texto));
+  renderTabla(filtrados);
+});
+
+
+  window.cerrarSesion = function () {
+    sessionStorage.removeItem("accesoPermitido");
+    location.reload();
+  };
+
+  // Mostrar/ocultar contraseña
+document.getElementById("toggle-clave").addEventListener("click", () => {
+  const input = document.getElementById("clave");
+  const icono = document.getElementById("toggle-clave");
+
+  if (input.type === "password") {
+    input.type = "text";
+    icono.textContent = "🙈"; // cambialo si querés
+  } else {
+    input.type = "password";
+    icono.textContent = "👁️";
+  }
+});
+
+window.subirImagen = async function (input, index) {
+  const archivo = input.files[0];
+  if (!archivo) return;
+
+  const nombreArchivo = `${Date.now()}_${archivo.name}`;
+  const ruta = ref(storage, `productos/${nombreArchivo}`);
+
+  try {
+    await uploadBytes(ruta, archivo);
+    const url = await getDownloadURL(ruta);
+
+    editar(index, 'imagen', url); // Actualiza imagen en el objeto
+    alert("✅ Imagen subida correctamente.");
+
+    const celda = input.closest('td');
+    celda.querySelector("small").innerHTML = `<img src="${url}" width="50"> ✅`;
+
+  } catch (error) {
+    alert("❌ Error al subir la imagen.");
+    console.error(error);
+  }
+};
+
+window.productos = productos;
+
+</script>
+
+</body>
+</html>
