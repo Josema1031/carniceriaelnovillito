@@ -8,6 +8,7 @@ body {
   margin: 0;
   padding: 0;
 }
+/* -------- Header y Logo -------- */
 
 header {
   background: #b30000;
@@ -15,6 +16,25 @@ header {
   text-align: center;
   padding: 1rem;
 }
+
+.header {
+  text-align: center;
+  padding: 1rem;
+}
+
+.logo-contenedor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
 
 /* -------- Grid de productos -------- */
 .productos {
@@ -27,13 +47,13 @@ header {
 
 @media (min-width: 600px) {
   .productos {
-    grid-template-columns: repeat(3, 1fr); /* Tablets */
+    grid-template-columns: repeat(4, 1fr); /* Tablets */
   }
 }
 
 @media (min-width: 1024px) {
   .productos {
-    grid-template-columns: repeat(5, 1fr); /* Escritorio */
+    grid-template-columns: repeat(6, 1fr); /* Escritorio */
   }
 }
 
@@ -41,14 +61,14 @@ header {
 .card {
   width: 100%;
   max-width: 200px;
-  border: 1px solid #ccc;
+  border: 1px solid black;
   padding: 1rem;
   text-align: center;
   border-radius: 8px;
   box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
   opacity: 0;
   transform: translateY(20px);
-  animation: aparecer 0.5s ease forwards;
+  animation: zoomIn 2.6s ease forwards;
 }
 
 .card img {
@@ -57,10 +77,14 @@ header {
 }
 
 /* -------- Animación -------- */
-@keyframes aparecer {
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
   }
 }
 
@@ -120,8 +144,8 @@ header {
 
 #carrito-flotante {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 70px;
+  right: 5px;
   z-index: 1000;
 }
 
@@ -227,7 +251,7 @@ header {
   }
 
   #buscador {
-    width: 90% !important;
+    width: 70% !important;
     margin: 10px auto;
     display: block;
   }
@@ -244,13 +268,13 @@ header {
   }
 
   #btn-mostrar-mas {
-    width: 90%;
+    width: 50%;
   }
 }
 
 @media (max-width: 480px) {
   header h1 {
-    font-size: 1.2rem;
+    font-size: 1.7rem;
   }
 
   header p {
@@ -262,7 +286,7 @@ header {
   }
 
   #menu-categorias button {
-    font-size: 12px;
+    font-size: 18px;
     padding: 6px 10px;
   }
 
@@ -279,8 +303,45 @@ header {
     width: 100%;
     margin-top: 10px;
   }
+  #btn-vaciar {
+    width: 40%;
+    margin-top: 10px;
+  }
+  #btn-mostrar-mas {
+    width: 50%;
+  }
+
+  #buscador {
+    width: 50% !important;
+    margin: 10px auto;
+    display: block;
+  }
+
 }
 
 .oculto {
   display: none;
+}
+
+#footer {
+  background: #b30000;
+  color: #fff;
+  text-align: left;
+  padding: 20px 20px 20px 30px;
+  margin-top: 40px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+#footer p {
+  margin: 5px 0;
+}
+
+/* Footer responsive en móviles */
+@media (max-width: 600px) {
+  #footer {
+    padding: 15px;
+    font-size: 12px;
+   
+  }
 }

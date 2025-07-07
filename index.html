@@ -5,21 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CARNICERIA EL NOVILLITO</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="shortcut icon" href="imag/logo novillito.png" type="image/x-icon">
+  <link rel="shortcut icon" href="imag/descarga.png" type="image/x-icon">
 
 
 </head>
 
 <body>
-  <header>
+  <header class="header">
+  <div class="logo-contenedor">
+    <img src="imag/logo novillito.png" alt="Logo Carnicería" class="logo">
     <h1>CARNICERIA EL NOVILLITO</h1>
-    <p>Calidad y precio justo en tu mesa</p>
-  </header>
+  </div>
+  <p>Calidad y precio justo en tu mesa</p>
+</header>
+
  <div id="menu-categorias">
   <button onclick="filtrarCategoria('todo')">Todos</button>
   <button onclick="filtrarCategoria('carne')">Carne</button>
   <button onclick="filtrarCategoria('cerdo')">Cerdo</button>
   <button onclick="filtrarCategoria('pollo')">Pollo</button>
+  <button onclick="filtrarCategoria('Embutidos')">Embutidos</button>
 </div>
 
 
@@ -29,42 +34,42 @@
 
   <main>
     <input type="text" id="buscador" placeholder="Buscar productos..." style="width: 35%; padding: 10px; margin-bottom: 20px; font-size: 16px;">
-
     <div class="productos" id="contenedor-productos"></div>
-    <div style="text-align:center; margin: 20px;">
-<button id="btn-mostrar-mas" onclick="mostrarMasProductos()">Mostrar más productos</button>
-</div>
+    <div style="text-align:center; margin: 20px;"><button id="btn-mostrar-mas" onclick="mostrarMasProductos()">Más productos</button></div>
 
   </main>
 
-  
-
-
   <div id="carrito-flotante">
-  <button id="toggle-carrito">🛒 Ver carrito</button>
-  <div id="carrito-contenido" class="oculto">
-    <h2>Carrito de Compra</h2>
-    <ul id="lista-carrito"></ul>
-    <p id="total">Total: $0</p>
-    <button id="btn-vaciar" style="background: gray; color: white; margin-top: 10px;">Vaciar carrito</button>
-    <button id="btn-enviar">Enviar pedido por WhatsApp</button>
+      <button id="toggle-carrito">🛒 Ver carrito</button>
+      <div id="carrito-contenido" class="oculto">
+        <h2>Carrito de Compra</h2>
+        <ul id="lista-carrito"></ul>
+        <p id="total">Total: $0</p>
+        <button id="btn-vaciar" style="background: gray; color: white; margin-top: 10px;">Vaciar carrito</button>
+        <button id="btn-enviar">Enviar pedido por WhatsApp</button>
+      </div>
   </div>
-</div>
 
 
   <div id="modal-producto" class="modal oculto">
-  <div class="modal-contenido">
-    <span class="cerrar" onclick="cerrarModal()">&times;</span>
-    <img id="modal-imagen" src="" alt="" style="max-width: 100%; border-radius: 8px;">
-    <h2 id="modal-nombre"></h2>
-    <p id="modal-precio"></p>
-    <p id="modal-descripcion"></p>
-    <button id="modal-agregar">Agregar al carrito</button>
+    <div class="modal-contenido">
+      <span class="cerrar" onclick="cerrarModal()">&times;</span>
+      <img id="modal-imagen" src="" alt="" style="max-width: 100%; border-radius: 8px;">
+      <h2 id="modal-nombre"></h2>
+      <p id="modal-precio"></p>
+      <p id="modal-descripcion"></p>
+      <button id="modal-agregar">Agregar al carrito</button>
+    </div>
   </div>
-</div>
+
+  <footer id="footer">
+  <p><strong>📍 Ubicación:</strong> Av. San Martín 123, Gualeguay (ER)</p>
+  <p><strong>🕒 Horario de atención:</strong> Lunes a Sábado de 8:00 a 13:00 y de 17:00 a 21:00 hs</p>
+</footer>
 
 
-  <script type="module" src="script.js"></script>
+<script type="module" src="script.js"></script>
+
 
 </body>
 </html>

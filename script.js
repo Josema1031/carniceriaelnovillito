@@ -1,6 +1,6 @@
 // Firebase SDKs
-const tiendaId = "CARNICERIAELNOVILLITO"; // ⚠️ Cambiá esto para cada tienda
 
+const tiendaId = "CARNICERIAELNOVILLITO"; // <- el ID exacto de tu tienda
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore,
@@ -21,6 +21,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const productosRef = collection(db, "tiendas", tiendaId, "productos");
+
+
 
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 let productosCargados = [];
@@ -95,21 +97,6 @@ function mostrarCarrito() {
   document.getElementById("total").textContent = `Total: $${total}`;
 }
 
-// Cerrar carrito si se hace clic fuera de él
-document.addEventListener("click", function (event) {
-  const toggleBtn = document.getElementById("toggle-carrito");
-  const carritoCont = document.getElementById("carrito-contenido");
-
-  const clicDentroCarrito = carritoCont.contains(event.target);
-  const clicEnBoton = toggleBtn.contains(event.target);
-
-  // Si el clic fue fuera del carrito y del botón, lo ocultamos
-  if (!clicDentroCarrito && !clicEnBoton) {
-    carritoCont.classList.add("oculto");
-  }
-});
-
-
 // Aumentar cantidad
 function aumentarCantidad(index) {
   carrito[index].cantidad += 1;
@@ -151,8 +138,11 @@ document.getElementById("btn-enviar").addEventListener("click", () => {
     return;
   }
 
-  const mensaje = carrito.map(p => `${p.nombre} - $${p.precio} x ${p.cantidad}`).join("\n");
-  const url = `https://wa.me/5492644429649?text=Hola, quiero hacer un pedido:%0A${encodeURIComponent(mensaje)}`;
+  const mensajeProductos = carrito.map(p => `${p.nombre} - $${p.precio} x ${p.cantidad}`).join("\n");
+  const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const mensajeCompleto = `${mensajeProductos}\n\nTotal del pedido: $${total}`;
+
+  const url = `https://wa.me/5492644429649?text=Hola, quiero hacer el siguiente pedido:%0A${encodeURIComponent(mensajeCompleto)}`;
 
   window.open(url, "_blank");
   carrito = [];
@@ -160,6 +150,7 @@ document.getElementById("btn-enviar").addEventListener("click", () => {
   mostrarCarrito();
   window.location.href = "gracias.html";
 });
+
 
 // Carrito flotante
 document.getElementById("toggle-carrito").addEventListener("click", () => {
